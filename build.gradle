@@ -1,0 +1,55 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+    maven { url 'https://mvn.freenetproject.org' }
+    maven { url 'https://jitpack.io' }
+}
+configurations {
+    provided {
+        dependencies.all { dep ->
+            configurations.default.exclude group: dep.group, module: dep.name
+        }
+    }
+    compile.extendsFrom provided
+}
+
+dependencies {
+    testImplementation('org.junit.jupiter:junit-jupiter-api:5.4.2')
+    testRuntime('org.junit.jupiter:junit-jupiter-engine:5.4.2')
+
+    provided group: 'org.freenetproject', name: 'fred', version: 'build+'
+    compile 'com.github.desyncr:freenet-node-metrics:0.3'
+}
+
+
+configurations {
+    provided {
+        dependencies.all { dep ->
+            configurations.default.exclude group: dep.group, module: dep.name
+        }
+    }
+    compile.extendsFrom provided
+}
+
+jar {
+    manifest {
+        attributes 'Plugin-Main-Class': 'net.desyncr.node.metrics.plugin.NodeMetricsPlugin',
+                   'Required-Node-Version': '1472',
+                   'Implementation-Version': '0.0.1'
+    }
+}
+
+task fatJar(type: Jar) {
+    archiveFileName = project.name.toLowerCase() + '-fatjar.jar'
+    from { (configurations.runtime - configurations.provided).collect { it.isDirectory() ? it : zipTree(it) } }
+    manifest {
+        attributes('Plugin-Main-Class': 'net.desyncr.node.metrics.plugin.NodeMetricsPlugin')
+    }
+    with jar
+}
+
+test {
+    useJUnitPlatform()
+}
